@@ -26,7 +26,12 @@ export interface DisplayComponentInstance {
 /**
  * A node in the flow graph. `isContainer` nodes (Display) hold
  * `componentInstances` and render via the component registry; non-container
- * nodes (Finale) render themselves via their own `Renderer`.
+ * nodes (Finale, Connector) render themselves via their own `Renderer`.
+ *
+ * `onAdvance` lets a non-container node's Renderer move the player forward
+ * itself — a terminal node (Finale) simply never calls it, while a routing
+ * node (Connector) calls it with a specific `outputKey` it computed rather
+ * than waiting on any user interaction.
  */
 export interface FlowNodeDefinition<TConfig = unknown> {
   type: string;
@@ -34,7 +39,7 @@ export interface FlowNodeDefinition<TConfig = unknown> {
   isContainer: boolean;
   configSchema: ZodType<TConfig>;
   defaultConfig: TConfig;
-  Renderer?: ComponentType<{ config: TConfig }>;
+  Renderer?: ComponentType<{ config: TConfig; onAdvance: (outputKey?: string) => void }>;
 }
 
 export interface FlowNodeInstance {

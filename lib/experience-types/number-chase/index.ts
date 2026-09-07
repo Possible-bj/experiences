@@ -10,6 +10,7 @@ import { buildNumberChaseFlow } from "@/lib/experience-types/number-chase/build-
 export const numberChaseType: ExperienceTypeDefinition<NumberChaseConfig> = {
   key: "number-chase",
   label: "Number Chase",
+  category: "system",
   description:
     "A hidden trail of linked numbers threaded through a wall of names — follow it to the end for a personalized confetti finale.",
   configSchema: NumberChaseConfigSchema,

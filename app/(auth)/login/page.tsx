@@ -7,6 +7,7 @@ import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { LogoMark } from "@/components/brand/logo-mark";
 
 export default function LoginPage() {
   return (
@@ -47,9 +48,14 @@ function LoginForm() {
 
   return (
     <div>
-      <span className="text-2xl">♥</span>
-      <h1 className="font-display mt-3 text-2xl italic">Welcome back</h1>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-primary">
+        <LogoMark size={20} />
+        <span className="font-creator-display text-base font-bold tracking-tight text-foreground">
+          Experiences
+        </span>
+      </div>
+      <h1 className="font-creator-display mt-7 text-2xl font-bold tracking-tight">Welcome back</h1>
+      <p className="mt-1.5 text-sm text-muted-foreground">
         Sign in to manage your experiences.
       </p>
 

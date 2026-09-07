@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { FlowEngine } from "@/lib/flow/engine";
 import { getFlowNodeType } from "@/lib/flow/nodes/registry";
 import { StyleProvider } from "@/lib/flow/style-context";
+import { FlowStateProvider } from "@/lib/flow/flow-state-context";
 import type { ExperienceStyle, FlowGraph } from "@/lib/flow/types";
 import { DisplayNodeRenderer } from "@/components/flow/display-node-renderer";
 
@@ -28,13 +29,17 @@ export function FlowPlayer({ flow, style }: { flow: FlowGraph; style: Experience
 
   return (
     <StyleProvider style={style}>
-      <AnimatePresence mode="wait">
-        {definition.isContainer ? (
-          <DisplayNodeRenderer key={currentNodeId} node={node} onComplete={() => advance()} />
-        ) : (
-          definition.Renderer && <definition.Renderer key={currentNodeId} config={node.config} />
-        )}
-      </AnimatePresence>
+      <FlowStateProvider>
+        <AnimatePresence mode="wait">
+          {definition.isContainer ? (
+            <DisplayNodeRenderer key={currentNodeId} node={node} onComplete={() => advance()} />
+          ) : (
+            definition.Renderer && (
+              <definition.Renderer key={currentNodeId} config={node.config} onAdvance={advance} />
+            )
+          )}
+        </AnimatePresence>
+      </FlowStateProvider>
     </StyleProvider>
   );
 }

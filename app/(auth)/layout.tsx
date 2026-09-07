@@ -1,13 +1,8 @@
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="flex min-h-screen items-center justify-center px-4 py-16"
-      style={{
-        background:
-          "radial-gradient(120% 100% at 50% -10%, oklch(0.94 0.05 20) 0%, oklch(0.99 0.006 70) 55%)",
-      }}
-    >
-      <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card/90 p-8 shadow-lg shadow-black/[0.03] backdrop-blur">
+    <div className="font-creator-sans relative flex min-h-screen items-center justify-center overflow-hidden bg-background px-4 py-8 sm:py-16">
+      <div className="pointer-events-none absolute top-[-160px] left-1/2 size-[560px] -translate-x-1/2 rounded-full bg-primary/16 blur-[90px]" />
+      <div className="relative w-full max-w-sm rounded-[20px] border border-border bg-card p-9 shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
         {children}
       </div>
     </div>

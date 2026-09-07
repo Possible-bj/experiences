@@ -18,7 +18,7 @@ const letter = {
   visible: { opacity: 1, y: 0, scale: 1 },
 };
 
-export function FinaleRenderer({ config }: { config: FinaleConfig }) {
+export function FinaleRenderer({ config }: { config: FinaleConfig; onAdvance?: (outputKey?: string) => void }) {
   const { style, theme } = useExperienceStyle();
   const message = derivedFinaleMessage(config);
 

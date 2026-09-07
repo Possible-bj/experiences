@@ -24,6 +24,12 @@ export function MultiSelectRenderer({
   function submit() {
     if (selected.length < config.minSelections) return;
     setVariable(config.variableName, selected);
+    if (config.scoreVariable) {
+      const points = config.options
+        .filter((o) => selected.includes(o.value))
+        .reduce((sum, o) => sum + (o.points ?? 0), 0);
+      setVariable(config.scoreVariable, (prev: unknown) => (typeof prev === "number" ? prev : 0) + points);
+    }
     onComplete();
   }
 

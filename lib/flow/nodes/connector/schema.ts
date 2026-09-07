@@ -1,10 +1,16 @@
 import { z } from "zod";
 
+export const CONNECTOR_MATCH_TYPES = ["exact", "range"] as const;
+
 export const ConnectorCaseSchema = z.object({
-  // Compared against the variable's value as a string — good enough for the
-  // select/text values components write today; a future typed-comparison
-  // system (numbers, ranges) can extend this without touching the engine.
-  value: z.string(),
+  matchType: z.enum(CONNECTOR_MATCH_TYPES).default("exact"),
+  // Used when matchType is "exact" — compared against the variable's value
+  // as a string.
+  value: z.string().optional(),
+  // Used when matchType is "range" — inclusive numeric bounds, e.g. for a
+  // quiz score. Either bound may be omitted for an open-ended range.
+  min: z.number().optional(),
+  max: z.number().optional(),
   outputKey: z.string().min(1),
 });
 

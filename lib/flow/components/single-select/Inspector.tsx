@@ -12,7 +12,7 @@ export function SingleSelectInspector({
   value: SingleSelectConfig;
   onChange: (value: SingleSelectConfig) => void;
 }) {
-  function updateOption(index: number, patch: Partial<{ label: string; value: string }>) {
+  function updateOption(index: number, patch: Partial<{ label: string; value: string; points: number }>) {
     const options = value.options.map((o, i) => (i === index ? { ...o, ...patch } : o));
     onChange({ ...value, options });
   }
@@ -59,6 +59,13 @@ export function SingleSelectInspector({
               placeholder="Value"
               className="w-28"
             />
+            <Input
+              type="number"
+              value={option.points ?? ""}
+              onChange={(e) => updateOption(i, { points: e.target.value === "" ? undefined : Number(e.target.value) })}
+              placeholder="Points"
+              className="w-24"
+            />
             <Button type="button" variant="ghost" size="sm" onClick={() => removeOption(i)}>
               Remove
             </Button>
@@ -67,6 +74,15 @@ export function SingleSelectInspector({
         <Button type="button" variant="outline" size="sm" onClick={addOption}>
           Add option
         </Button>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="select-score-variable">Add points to (optional)</Label>
+        <Input
+          id="select-score-variable"
+          value={value.scoreVariable ?? ""}
+          onChange={(e) => onChange({ ...value, scoreVariable: e.target.value || undefined })}
+          placeholder="e.g. score"
+        />
       </div>
     </div>
   );

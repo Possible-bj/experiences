@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import type { ConnectorConfig } from "@/lib/flow/nodes/connector/schema";
 import { useFlowState } from "@/lib/flow/flow-state-context";
+import { getConnectorMatchStrategy } from "@/lib/flow/strategies/connector-match";
 
 /**
  * Renders nothing — a Connector is pure routing. It reads one variable,
@@ -26,7 +27,7 @@ export function ConnectorRenderer({
     hasAdvanced.current = true;
 
     const value = variables[config.variableName];
-    const match = config.cases.find((c) => c.value === String(value));
+    const match = config.cases.find((c) => getConnectorMatchStrategy(c.matchType).matches(value, c));
     onAdvance(match?.outputKey ?? config.defaultOutputKey);
     // Runs once per mount (a fresh mount happens on every visit, including a
     // repeat visit via loop-back) — intentionally not re-run on state churn.

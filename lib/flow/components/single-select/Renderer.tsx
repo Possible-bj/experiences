@@ -15,8 +15,12 @@ export function SingleSelectRenderer({
   const { theme } = useExperienceStyle();
   const { setVariable } = useFlowState();
 
-  function choose(value: string) {
-    setVariable(config.variableName, value);
+  function choose(option: SingleSelectConfig["options"][number]) {
+    setVariable(config.variableName, option.value);
+    if (config.scoreVariable) {
+      const points = option.points ?? 0;
+      setVariable(config.scoreVariable, (prev: unknown) => (typeof prev === "number" ? prev : 0) + points);
+    }
     onComplete();
   }
 
@@ -29,7 +33,7 @@ export function SingleSelectRenderer({
         {config.options.map((option) => (
           <motion.button
             key={option.value}
-            onClick={() => choose(option.value)}
+            onClick={() => choose(option)}
             whileTap={{ scale: 0.97 }}
             whileHover={{ scale: 1.02 }}
             className="w-full rounded-lg border px-4 py-3 text-base font-medium"

@@ -7,6 +7,7 @@ export const MultiSelectConfigSchema = z.object({
   options: z.array(SelectOptionSchema).min(2),
   minSelections: z.number().int().min(0).default(1),
   buttonLabel: z.string().max(30).default("Continue"),
+  scoreVariable: z.string().min(1).optional(),
 });
 
 export type MultiSelectConfig = z.infer<typeof MultiSelectConfigSchema>;

@@ -76,6 +76,16 @@ export async function deleteExperience(id: string, ownerId: string): Promise<boo
   return result.deletedCount > 0;
 }
 
+// Takes the caller's own list of type keys (from the experience-types
+// registry) rather than a category name — keeps this file a pure DB-access
+// layer with no knowledge of the registry or plan-limit business rules.
+export async function countByOwnerAndTypes(ownerId: string, types: string[]): Promise<number> {
+  const db = await getDb();
+  return db
+    .collection<Experience>(COLLECTION)
+    .countDocuments({ ownerId, type: { $in: types } } as never);
+}
+
 export async function listByOwner(ownerId: string): Promise<Experience[]> {
   const db = await getDb();
   return db

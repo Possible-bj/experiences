@@ -30,6 +30,7 @@ export async function createUser(input: {
     email: input.email.toLowerCase(),
     passwordHash: input.passwordHash,
     name: input.name,
+    plan: "free",
     createdAt: now,
     updatedAt: now,
   };

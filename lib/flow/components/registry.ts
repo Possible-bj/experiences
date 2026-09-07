@@ -6,6 +6,8 @@ import { textareaComponentType } from "@/lib/flow/components/textarea";
 import { singleSelectComponentType } from "@/lib/flow/components/single-select";
 import { multiSelectComponentType } from "@/lib/flow/components/multi-select";
 import { waitForTapComponentType } from "@/lib/flow/components/wait-for-tap";
+import { revealComponentType } from "@/lib/flow/components/reveal";
+import { calendarComponentType } from "@/lib/flow/components/calendar";
 
 // The single place to touch when adding a new display component: import its
 // definition and add one entry. Nothing else (DisplayNodeRenderer, the
@@ -19,6 +21,8 @@ const DISPLAY_COMPONENTS: Record<string, DisplayComponentDefinition<any>> = {
   [singleSelectComponentType.type]: singleSelectComponentType,
   [multiSelectComponentType.type]: multiSelectComponentType,
   [waitForTapComponentType.type]: waitForTapComponentType,
+  [revealComponentType.type]: revealComponentType,
+  [calendarComponentType.type]: calendarComponentType,
 };
 
 export function getDisplayComponentType(type: string): DisplayComponentDefinition<any> | undefined {

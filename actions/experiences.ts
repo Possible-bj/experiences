@@ -3,13 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/actions/require-auth";
 import { getExperienceType } from "@/lib/experience-types/registry";
+import type { ExperienceCategory } from "@/lib/experience-types/types";
 import { ExperienceInputSchema } from "@/lib/schemas/experience";
-import {
-  createExperience,
-  deleteExperience,
-  getById,
-  updateExperience,
-} from "@/lib/data/experiences";
+import { createExperience, deleteExperience, getById, updateExperience } from "@/lib/data/experiences";
+import { getPlanUsage } from "@/lib/plan-usage";
 import type { Experience } from "@/lib/schemas/experience";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
@@ -32,8 +29,34 @@ function parseWithType(input: unknown) {
 
   return {
     ok: true as const,
+    definition,
     value: { ...universal.data, config: config.data },
   };
+}
+
+/**
+ * Enforces the owner's plan cap for the category (system/custom) the type
+ * being created belongs to — the single choke point for plan limits, since
+ * every path that creates a new owned experience (including a future
+ * "Copy" action) goes through `createExperienceAction`. Updating an
+ * existing experience never calls this — the count doesn't change.
+ */
+async function checkPlanLimit(
+  ownerId: string,
+  category: ExperienceCategory,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const usage = await getPlanUsage(ownerId);
+  const { used, limit } = usage[category];
+
+  if (used >= limit) {
+    const noun = category === "custom" ? "custom experience" : "system-type experience";
+    return {
+      ok: false,
+      error: `You've reached your plan's limit of ${limit} ${noun}${limit === 1 ? "" : "s"}. Upgrade to create more.`,
+    };
+  }
+
+  return { ok: true };
 }
 
 export async function createExperienceAction(
@@ -43,6 +66,9 @@ export async function createExperienceAction(
 
   const parsed = parseWithType(input);
   if (!parsed.ok) return { success: false, error: parsed.error };
+
+  const limitCheck = await checkPlanLimit(ownerId, parsed.definition.category);
+  if (!limitCheck.ok) return { success: false, error: limitCheck.error };
 
   const experience = await createExperience(ownerId, parsed.value);
   revalidatePath("/dashboard");

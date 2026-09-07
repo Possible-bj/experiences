@@ -1,10 +1,14 @@
 import { z } from "zod";
 
+export const UserPlanSchema = z.enum(["free", "premium"]);
+export type UserPlan = z.infer<typeof UserPlanSchema>;
+
 export const UserSchema = z.object({
   _id: z.string(),
   email: z.string().email(),
   passwordHash: z.string().min(1),
   name: z.string().min(1).max(80).optional(),
+  plan: UserPlanSchema.default("free"),
   createdAt: z.date(),
   updatedAt: z.date(),
 });

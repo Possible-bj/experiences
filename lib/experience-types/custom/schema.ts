@@ -65,7 +65,7 @@ export const CustomFinaleNodeSchema = z.object({
   id: z.string().min(1),
   type: z.literal("finale"),
   position: CustomPositionSchema,
-  message: z.string().min(1).max(100),
+  message: z.string().min(1).max(300),
   recipientName: z.string().max(60).optional(),
 });
 

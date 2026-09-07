@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -96,10 +97,11 @@ export function NumberChaseConfigForm({
 
       <div className="space-y-2">
         <Label htmlFor="finaleMessage">Finale message</Label>
-        <Input
+        <Textarea
           id="finaleMessage"
           value={value.finaleMessage}
           onChange={(e) => set("finaleMessage", e.target.value)}
+          rows={3}
         />
         <p className="text-xs text-muted-foreground">
           {value.recipientName

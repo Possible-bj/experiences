@@ -18,7 +18,7 @@ export const NumberChaseConfigSchema = z.object({
   finalText: z.string().min(1).max(40).default("You"),
   introPrefix: z.string().min(1).max(60).default("I love"),
   recipientName: z.string().max(60).optional(),
-  finaleMessage: z.string().min(1).max(100).default("I love you"),
+  finaleMessage: z.string().min(1).max(300).default("I love you"),
   theme: z.enum(EXPERIENCE_THEMES).default("classic"),
   backgroundImageUrl: z.string().url().optional(),
   confettiColors: z.array(z.string()).max(6).optional(),

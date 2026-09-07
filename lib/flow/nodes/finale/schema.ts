@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const FinaleConfigSchema = z.object({
-  message: z.string().min(1).max(100).default("I love you"),
+  message: z.string().min(1).max(300).default("I love you"),
   recipientName: z.string().max(60).optional(),
 });
 

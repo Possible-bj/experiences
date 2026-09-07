@@ -12,10 +12,21 @@ import type { Experience } from "@/lib/schemas/experience";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
 
+// Surfaces the specific field + reason (e.g. "finaleMessage: String must
+// contain at most 100 character(s)") instead of a dead-end generic message —
+// the only way a user can tell WHY a save was rejected, since nothing else
+// in the UI validates these constraints before submit.
+function describeIssues(error: import("zod").ZodError, fallback: string): string {
+  const issue = error.issues[0];
+  if (!issue) return fallback;
+  const path = issue.path.join(".");
+  return path ? `${path}: ${issue.message}` : issue.message;
+}
+
 function parseWithType(input: unknown) {
   const universal = ExperienceInputSchema.safeParse(input);
   if (!universal.success) {
-    return { ok: false as const, error: "Please check the form and try again." };
+    return { ok: false as const, error: describeIssues(universal.error, "Please check the form and try again.") };
   }
 
   const definition = getExperienceType(universal.data.type);
@@ -25,7 +36,10 @@ function parseWithType(input: unknown) {
 
   const config = definition.configSchema.safeParse(universal.data.config);
   if (!config.success) {
-    return { ok: false as const, error: "Please check the experience settings and try again." };
+    return {
+      ok: false as const,
+      error: describeIssues(config.error, "Please check the experience settings and try again."),
+    };
   }
 
   return {

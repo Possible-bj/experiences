@@ -5,7 +5,7 @@
 // they're read live from the server process at request time and always
 // reflect the actual deployment, making them a reliable runtime fallback.
 function resolveSiteUrl(): string {
-  if (process.env.NEXT_PUBLIC_SITE_URL) return process.env.NEXT_PUBLIC_SITE_URL;
+  if (process.env.NEXT_SITE_URL) return process.env.NEXT_SITE_URL;
   if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
     return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
   }

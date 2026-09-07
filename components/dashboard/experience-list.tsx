@@ -11,30 +11,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { deleteExperienceAction } from "@/actions/experiences";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { ShareButton } from "@/components/shared/share-button";
+import { copyExperienceAction, deleteExperienceAction } from "@/actions/experiences";
 import { getExperienceType } from "@/lib/experience-types/registry";
 import type { Experience } from "@/lib/schemas/experience";
 
-export function ExperienceList({
-  experiences,
-  siteUrl,
-}: {
-  experiences: Experience[];
-  siteUrl: string;
-}) {
+export function ExperienceList({ experiences }: { experiences: Experience[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  function handleCopy(slug: string) {
-    const url = `${siteUrl}/e/${slug}`;
-    navigator.clipboard.writeText(url).then(
-      () => toast.success("Link copied"),
-      () => toast.error("Couldn't copy link"),
-    );
-  }
-
-  function handleDelete(id: string) {
+  function confirmDelete() {
+    const id = deleteTargetId;
+    if (!id) return;
+    setDeleteTargetId(null);
     setPendingId(id);
     startTransition(async () => {
       const result = await deleteExperienceAction(id);
@@ -44,6 +44,20 @@ export function ExperienceList({
         return;
       }
       toast.success("Experience deleted");
+      router.refresh();
+    });
+  }
+
+  function handleDuplicate(id: string) {
+    setPendingId(id);
+    startTransition(async () => {
+      const result = await copyExperienceAction(id);
+      setPendingId(null);
+      if (!result.success) {
+        toast.error(result.error);
+        return;
+      }
+      toast.success("Experience duplicated");
       router.refresh();
     });
   }
@@ -129,18 +143,27 @@ export function ExperienceList({
                   </svg>
                   {experience.viewCount} view{experience.viewCount === 1 ? "" : "s"}
                 </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.5.5l2-2a5 5 0 0 0-7-7l-1 1" />
+                    <path d="M14 11a5 5 0 0 0-7.5-.5l-2 2a5 5 0 0 0 7 7l1-1" />
+                  </svg>
+                  {experience.shareCount} share{experience.shareCount === 1 ? "" : "s"}
+                </span>
               </div>
 
               <div className="flex items-center gap-2">
-                <Button variant="outline" className="flex-1" onClick={() => handleCopy(experience.slug)}>
-                  Share
-                </Button>
+                <ShareButton experience={experience} className="flex-1" />
                 <Button
                   variant="outline"
                   className="flex-1"
                   nativeButton={false}
                   render={<Link href={`/edit/${experience._id}`} />}
                 >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                  </svg>
                   Edit
                 </Button>
                 <DropdownMenu>
@@ -161,7 +184,17 @@ export function ExperienceList({
                     </svg>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem variant="destructive" onClick={() => handleDelete(experience._id)}>
+                    <DropdownMenuItem onClick={() => handleDuplicate(experience._id)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="8" y="8" width="12" height="12" rx="2.5" />
+                        <path d="M4 16H3a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+                      </svg>
+                      Duplicate
+                    </DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={() => setDeleteTargetId(experience._id)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2m2 0v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V6" />
+                      </svg>
                       Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -171,6 +204,23 @@ export function ExperienceList({
           </div>
         );
       })}
+
+      <Dialog open={deleteTargetId !== null} onOpenChange={(open) => !open && setDeleteTargetId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete this experience?</DialogTitle>
+            <DialogDescription>
+              This can&apos;t be undone. The share link will stop working immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <DialogClose render={<Button variant="outline" />}>Cancel</DialogClose>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

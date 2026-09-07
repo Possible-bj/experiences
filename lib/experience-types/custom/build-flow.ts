@@ -1,13 +1,14 @@
 import type { CustomConfig } from "@/lib/experience-types/custom/schema";
+import { getNodeConnections } from "@/lib/experience-types/custom/connections";
 import type { ExperienceStyle, FlowEdgeInstance, FlowGraph, FlowNodeInstance } from "@/lib/flow/types";
-import { DEFAULT_OUTPUT } from "@/lib/flow/engine";
 
 /**
- * Compiles the Custom type's node list into a FlowGraph. Display/Finale
- * nodes flow to whichever node follows them in the list; a Connector node
- * ignores list order entirely and routes by its own configured targets —
- * including to an earlier node, which is how a creator expresses a
- * "loop back" without any dedicated UI for it.
+ * Compiles the Custom type's canvas model into a FlowGraph: each node's
+ * connections (from `getNodeConnections`, the same helper the canvas UI
+ * uses to draw them) become real edges, keyed by the same per-node handle
+ * id the Connector node type already uses as its `outputKey`. A port with
+ * no drawn connection yet simply produces no edge — the compiled flow is
+ * always exactly what's visible on the canvas, nothing implied.
  */
 export function buildCustomFlow(config: CustomConfig): { flow: FlowGraph; style: ExperienceStyle } {
   const nodes: FlowNodeInstance[] = config.nodes.map((node) => {
@@ -25,13 +26,13 @@ export function buildCustomFlow(config: CustomConfig): { flow: FlowGraph; style:
         type: "connector",
         config: {
           variableName: node.variableName,
-          defaultOutputKey: DEFAULT_OUTPUT,
-          cases: node.cases.map((c, j) => ({
+          defaultOutputKey: "default",
+          cases: node.cases.map((c, i) => ({
             matchType: c.matchType,
             value: c.value,
             min: c.min,
             max: c.max,
-            outputKey: `case-${j}`,
+            outputKey: `case-${i}`,
           })),
         },
       };
@@ -44,31 +45,19 @@ export function buildCustomFlow(config: CustomConfig): { flow: FlowGraph; style:
   });
 
   const edges: FlowEdgeInstance[] = [];
-  config.nodes.forEach((node, i) => {
-    if (node.type === "connector") {
-      node.cases.forEach((c, j) => {
-        edges.push({
-          id: `${node.id}-case-${j}`,
-          from: { nodeId: node.id, outputKey: `case-${j}` },
-          to: c.targetNodeId,
-        });
-      });
+  config.nodes.forEach((node) => {
+    getNodeConnections(node).forEach(({ handle, targetNodeId }) => {
+      if (!targetNodeId) return;
       edges.push({
-        id: `${node.id}-default`,
-        from: { nodeId: node.id, outputKey: DEFAULT_OUTPUT },
-        to: node.defaultTargetNodeId,
+        id: `${node.id}-${handle}`,
+        from: { nodeId: node.id, outputKey: handle },
+        to: targetNodeId,
       });
-    } else if (i < config.nodes.length - 1) {
-      edges.push({
-        id: `${node.id}-next`,
-        from: { nodeId: node.id, outputKey: DEFAULT_OUTPUT },
-        to: config.nodes[i + 1].id,
-      });
-    }
+    });
   });
 
   const flow: FlowGraph = {
-    entryNodeId: config.nodes[0].id,
+    entryNodeId: config.entryNodeId,
     nodes,
     edges,
   };

@@ -5,8 +5,9 @@ import { requireAuth } from "@/actions/require-auth";
 import { getExperienceType } from "@/lib/experience-types/registry";
 import type { ExperienceCategory } from "@/lib/experience-types/types";
 import { ExperienceInputSchema } from "@/lib/schemas/experience";
-import { createExperience, deleteExperience, getById, updateExperience } from "@/lib/data/experiences";
+import { createExperience, deleteExperience, getById, incrementShareCount, updateExperience } from "@/lib/data/experiences";
 import { getPlanUsage } from "@/lib/plan-usage";
+import { encodePersonalizationToken } from "@/lib/personalization-token";
 import type { Experience } from "@/lib/schemas/experience";
 
 type ActionResult<T> = { success: true; data: T } | { success: false; error: string };
@@ -76,6 +77,31 @@ export async function createExperienceAction(
   return { success: true, data: experience };
 }
 
+/**
+ * Duplicates an experience into the caller's own dashboard as an
+ * independent, fully-editable record — distinct from Share, which never
+ * creates a new owned record. Copying is allowed for any experience the
+ * caller could already reasonably get to: their own (any visibility) or
+ * anyone's public one. Delegates to `createExperienceAction` for the actual
+ * creation so validation and the plan-limit check never diverge from the
+ * normal create path.
+ */
+export async function copyExperienceAction(id: string): Promise<ActionResult<Experience>> {
+  const ownerId = await requireAuth();
+
+  const source = await getById(id);
+  if (!source || (source.visibility !== "public" && source.ownerId !== ownerId)) {
+    return { success: false, error: "Experience not found." };
+  }
+
+  return createExperienceAction({
+    type: source.type,
+    title: `Copy of ${source.title}`.slice(0, 120),
+    visibility: "private",
+    config: source.config,
+  });
+}
+
 export async function updateExperienceAction(
   id: string,
   input: unknown,
@@ -97,6 +123,42 @@ export async function updateExperienceAction(
   revalidatePath(`/e/${updated.slug}`);
 
   return { success: true, data: updated };
+}
+
+/**
+ * Fires once per generated share link — the plain canonical copy and a
+ * personalized copy both count, same as `viewCount` already counts every
+ * visit rather than deduping by visitor. Only counts when someone other
+ * than the owner is doing the sharing: the owner copying their own link
+ * from their own dashboard is just retrieving it, not spreading it — same
+ * access rule as Copy (their own, any visibility, or anyone's public one),
+ * since that's exactly who can already see a Share action in the UI.
+ */
+export async function recordShareAction(id: string): Promise<ActionResult<null>> {
+  const callerId = await requireAuth();
+
+  const existing = await getById(id);
+  if (!existing || (existing.visibility !== "public" && existing.ownerId !== callerId)) {
+    return { success: false, error: "Experience not found." };
+  }
+
+  if (existing.ownerId !== callerId) {
+    await incrementShareCount(id);
+    revalidatePath("/dashboard");
+    revalidatePath("/discover");
+  }
+
+  return { success: true, data: null };
+}
+
+/**
+ * Encryption has to happen server-side (the key never reaches the
+ * client) — this is the RPC boundary the Share dialog calls to turn its
+ * edited field values into the opaque `?p=` token before copying the link.
+ */
+export async function encodePersonalizationAction(overrides: Record<string, string>): Promise<string> {
+  await requireAuth();
+  return encodePersonalizationToken(overrides);
 }
 
 export async function deleteExperienceAction(

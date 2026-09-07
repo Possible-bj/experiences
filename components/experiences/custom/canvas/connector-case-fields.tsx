@@ -11,24 +11,28 @@ import {
 } from "@/components/ui/select";
 import type { CustomConnectorCase } from "@/lib/experience-types/custom/schema";
 
-export function ConnectorCaseEditor({
+/**
+ * Edits a Connector case's match rule only — matchType/value/min/max. Unlike
+ * the older list-based `ConnectorCaseEditor`, there is no target picker: on
+ * the canvas a case's target is set by dragging a connection from its
+ * handle, not chosen from a dropdown.
+ */
+export function ConnectorCaseFields({
   value,
-  targetOptions,
   onChange,
   onRemove,
 }: {
   value: CustomConnectorCase;
-  targetOptions: { id: string; label: string }[];
   onChange: (value: CustomConnectorCase) => void;
   onRemove: () => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border/60 p-2">
+    <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-border/60 p-2">
       <Select
         value={value.matchType}
         onValueChange={(v) => v && onChange({ ...value, matchType: v as CustomConnectorCase["matchType"] })}
       >
-        <SelectTrigger className="w-32">
+        <SelectTrigger className="h-8 w-24 text-xs">
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
@@ -42,7 +46,7 @@ export function ConnectorCaseEditor({
           value={value.value ?? ""}
           onChange={(e) => onChange({ ...value, value: e.target.value })}
           placeholder="Value"
-          className="w-28"
+          className="h-8 w-20 text-xs"
         />
       ) : (
         <>
@@ -51,35 +55,20 @@ export function ConnectorCaseEditor({
             value={value.min ?? ""}
             onChange={(e) => onChange({ ...value, min: e.target.value === "" ? undefined : Number(e.target.value) })}
             placeholder="Min"
-            className="w-20"
+            className="h-8 w-16 text-xs"
           />
-          <span className="text-sm text-muted-foreground">to</span>
+          <span className="text-xs text-muted-foreground">to</span>
           <Input
             type="number"
             value={value.max ?? ""}
             onChange={(e) => onChange({ ...value, max: e.target.value === "" ? undefined : Number(e.target.value) })}
             placeholder="Max"
-            className="w-20"
+            className="h-8 w-16 text-xs"
           />
         </>
       )}
 
-      <span className="text-sm text-muted-foreground">→</span>
-
-      <Select value={value.targetNodeId} onValueChange={(v) => v && onChange({ ...value, targetNodeId: v })}>
-        <SelectTrigger className="flex-1 min-w-32">
-          <SelectValue placeholder="Target step" />
-        </SelectTrigger>
-        <SelectContent>
-          {targetOptions.map((t) => (
-            <SelectItem key={t.id} value={t.id}>
-              {t.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
+      <Button type="button" variant="ghost" size="sm" className="ml-auto h-8 px-2 text-xs" onClick={onRemove}>
         Remove
       </Button>
     </div>

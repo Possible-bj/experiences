@@ -8,17 +8,17 @@ export function TypePicker({ usage, backHref }: { usage: PlanUsage; backHref: st
 
   return (
     <div>
-      <div className="flex h-16 items-center gap-4.5 border-b border-border px-7">
-        <Link href={backHref} className="text-muted-foreground hover:text-foreground">
+      <div className="flex h-16 items-center gap-3 border-b border-border px-4 sm:gap-4.5 sm:px-7">
+        <Link href={backHref} className="shrink-0 text-muted-foreground hover:text-foreground">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 6l-6 6 6 6" />
           </svg>
         </Link>
-        <div className="h-5.5 w-px bg-border" />
-        <h1 className="font-creator-display text-[19px] font-semibold">Choose an experience type</h1>
+        <div className="h-5.5 w-px shrink-0 bg-border" />
+        <h1 className="font-creator-display truncate text-[17px] font-semibold sm:text-[19px]">Choose an experience type</h1>
       </div>
 
-      <div className="mx-auto max-w-4xl px-7 py-10">
+      <div className="mx-auto max-w-4xl px-4 py-8 sm:px-7 sm:py-10">
         <UsageIndicator usage={usage} className="mb-8" />
 
         <div className="grid grid-cols-1 gap-4.5 sm:grid-cols-2 lg:grid-cols-3">

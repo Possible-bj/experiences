@@ -8,6 +8,8 @@ import { multiSelectComponentType } from "@/lib/flow/components/multi-select";
 import { waitForTapComponentType } from "@/lib/flow/components/wait-for-tap";
 import { revealComponentType } from "@/lib/flow/components/reveal";
 import { calendarComponentType } from "@/lib/flow/components/calendar";
+import { dateInputComponentType } from "@/lib/flow/components/date-input";
+import { locationInputComponentType } from "@/lib/flow/components/location-input";
 
 // The single place to touch when adding a new display component: import its
 // definition and add one entry. Nothing else (DisplayNodeRenderer, the
@@ -23,6 +25,8 @@ const DISPLAY_COMPONENTS: Record<string, DisplayComponentDefinition<any>> = {
   [waitForTapComponentType.type]: waitForTapComponentType,
   [revealComponentType.type]: revealComponentType,
   [calendarComponentType.type]: calendarComponentType,
+  [dateInputComponentType.type]: dateInputComponentType,
+  [locationInputComponentType.type]: locationInputComponentType,
 };
 
 export function getDisplayComponentType(type: string): DisplayComponentDefinition<any> | undefined {

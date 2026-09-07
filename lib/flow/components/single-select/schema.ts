@@ -9,6 +9,8 @@ export const SelectOptionSchema = z.object({
   points: z.number().optional(),
 });
 
+export type SelectOption = z.infer<typeof SelectOptionSchema>;
+
 export const SingleSelectConfigSchema = z.object({
   variableName: z.string().min(1),
   prompt: z.string().max(200).optional(),

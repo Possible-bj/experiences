@@ -12,7 +12,7 @@ export default async function DiscoverPage() {
   return (
     <div className="min-h-screen bg-background font-creator-sans">
       <AppHeader />
-      <div className="mx-auto max-w-5xl px-10 py-11">
+      <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-11 lg:px-10">
         <header className="mb-8">
           <h1 className="font-creator-display text-3xl font-bold tracking-tight">Discover</h1>
           <p className="mt-1 text-sm text-muted-foreground">

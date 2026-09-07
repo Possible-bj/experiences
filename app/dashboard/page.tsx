@@ -3,7 +3,6 @@ import { listByOwner } from "@/lib/data/experiences";
 import { getPlanUsage } from "@/lib/plan-usage";
 import { ExperienceList } from "@/components/dashboard/experience-list";
 import { UsageIndicator } from "@/components/dashboard/usage-indicator";
-import { SITE_URL } from "@/lib/site-url";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -21,7 +20,7 @@ export default async function DashboardPage() {
         </div>
         <UsageIndicator usage={usage} />
       </div>
-      <ExperienceList experiences={experiences} siteUrl={SITE_URL} />
+      <ExperienceList experiences={experiences} />
     </div>
   );
 }

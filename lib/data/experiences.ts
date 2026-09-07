@@ -5,6 +5,19 @@ import type { Experience, ExperienceInput } from "@/lib/schemas/experience";
 
 const COLLECTION = "experiences";
 
+// Documents saved before `shareableFields`/`shareCount` existed don't have
+// them in Mongo — the DB isn't schema-validated, so a stale document loaded
+// straight off the driver would violate the `Experience` type at runtime
+// (e.g. `undefined.includes(...)` in the UI). Every read goes through this
+// so the rest of the app can trust the type without each caller re-checking.
+function withDefaults(doc: Experience): Experience {
+  return {
+    ...doc,
+    shareableFields: doc.shareableFields ?? [],
+    shareCount: doc.shareCount ?? 0,
+  };
+}
+
 export async function ensureExperienceIndexes(): Promise<void> {
   const db = await getDb();
   await db.collection(COLLECTION).createIndex({ slug: 1 }, { unique: true });
@@ -30,7 +43,9 @@ export async function createExperience(
       title: input.title,
       visibility: input.visibility,
       config: input.config,
+      shareableFields: input.shareableFields,
       viewCount: 0,
+      shareCount: 0,
       createdAt: now,
       updatedAt: now,
     };
@@ -60,6 +75,7 @@ export async function updateExperience(
         title: input.title,
         visibility: input.visibility,
         config: input.config,
+        shareableFields: input.shareableFields,
         updatedAt: new Date(),
       },
     },
@@ -88,17 +104,18 @@ export async function countByOwnerAndTypes(ownerId: string, types: string[]): Pr
 
 export async function listByOwner(ownerId: string): Promise<Experience[]> {
   const db = await getDb();
-  return db
+  const docs = await db
     .collection<Experience>(COLLECTION)
     .find({ ownerId } as never)
     .sort({ createdAt: -1 })
     .toArray();
+  return docs.map(withDefaults);
 }
 
 export async function getById(id: string): Promise<Experience | null> {
   const db = await getDb();
   const doc = await db.collection<Experience>(COLLECTION).findOne({ _id: id } as never);
-  return doc ?? null;
+  return doc ? withDefaults(doc) : null;
 }
 
 // No visibility or ownership filter — a private experience is "unlisted",
@@ -106,16 +123,17 @@ export async function getById(id: string): Promise<Experience | null> {
 export async function getBySlug(slug: string): Promise<Experience | null> {
   const db = await getDb();
   const doc = await db.collection<Experience>(COLLECTION).findOne({ slug } as never);
-  return doc ?? null;
+  return doc ? withDefaults(doc) : null;
 }
 
 export async function listPublic(): Promise<Experience[]> {
   const db = await getDb();
-  return db
+  const docs = await db
     .collection<Experience>(COLLECTION)
     .find({ visibility: "public" } as never)
     .sort({ createdAt: -1 })
     .toArray();
+  return docs.map(withDefaults);
 }
 
 export async function incrementViewCount(slug: string): Promise<void> {
@@ -123,4 +141,12 @@ export async function incrementViewCount(slug: string): Promise<void> {
   await db
     .collection<Experience>(COLLECTION)
     .updateOne({ slug } as never, { $inc: { viewCount: 1 } });
+}
+
+// No owner check here — a non-owner sharing someone else's public
+// experience is exactly the case that should increment this (see
+// `recordShareAction`, which decides whether the caller qualifies).
+export async function incrementShareCount(id: string): Promise<void> {
+  const db = await getDb();
+  await db.collection<Experience>(COLLECTION).updateOne({ _id: id } as never, { $inc: { shareCount: 1 } });
 }

@@ -14,7 +14,7 @@ export default function LandingPage() {
         Build a personalized, animated moment and share it with a single
         link — no account needed to open it.
       </p>
-      <div className="relative mt-2 flex gap-3">
+      <div className="relative mt-2 flex flex-wrap justify-center gap-3">
         <Button size="lg" nativeButton={false} render={<Link href="/signup" />}>
           Get started
         </Button>
